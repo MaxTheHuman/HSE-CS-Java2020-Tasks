@@ -15,25 +15,8 @@ public class Main {
         }
 
         final File directory = new File(args[0]);
-        if (directory == null) {
-            System.err.println("directory path is incorrect");
-            return;
-        }
 
         listDirsInDir(directory);
-    }
-
-    static void checkMaxWidthFormats(MyFile[] dirs, int i, long maxDirectorySize,
-                                     int maxItemsNumber, int maxDirectoryNameWidth) {
-        if (dirs[i].getSize() > maxDirectorySize) {
-            maxDirectorySize = dirs[i].getSize();
-        }
-        if (dirs[i].getItemsNumber() > maxItemsNumber) {
-            maxItemsNumber = dirs[i].getItemsNumber();
-        }
-        if (dirs[i].getName().length() > maxDirectoryNameWidth) {
-            maxDirectoryNameWidth = dirs[i].getName().length();
-        }
     }
 
     static void printDirInfo(MyFile[] dirs, int i, long maxDirectorySize,
@@ -85,12 +68,26 @@ public class Main {
         File currDir;
 
         File[] files = directory.listFiles(File::isFile);
+
+        MyFile[] myFiles = {};
         if (files != null) {
-            for (final File currFile : files) {
-                if (currFile != null) {
-                    totalSize += currFile.length();
-                    topList.updateTopList(currFile.getPath(), currFile.length());
+            myFiles = new MyFile[files.length];
+        }
+
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                myFiles[i] = new MyFile(files[i].getName());
+                myFiles[i].incrementSizeOnAmount(files[i].length());
+                totalSize += files[i].length();
+
+                if (myFiles[i].getSize() > maxDirectorySize) {
+                    maxDirectorySize = myFiles[i].getSize();
                 }
+                if (myFiles[i].getName().length() > maxDirectoryNameWidth) {
+                    maxDirectoryNameWidth = myFiles[i].getName().length();
+                }
+
+                topList.updateTopList(files[i].getPath(), files[i].length());
             }
         }
 
@@ -108,17 +105,28 @@ public class Main {
                 if (currDir != null) {
                     getDirectoryInfo(currDir, dirs, i);
                     totalSize += dirs[i].getSize();
-                    checkMaxWidthFormats(dirs, i, maxDirectorySize, maxItemsNumber, maxDirectoryNameWidth);
+
+                    if (dirs[i].getSize() > maxDirectorySize) {
+                        maxDirectorySize = dirs[i].getSize();
+                    }
+                    if (dirs[i].getItemsNumber() > maxItemsNumber) {
+                        maxItemsNumber = dirs[i].getItemsNumber();
+                    }
+                    if (dirs[i].getName().length() > maxDirectoryNameWidth) {
+                        maxDirectoryNameWidth = dirs[i].getName().length();
+                    }
                 }
             }
 
-            Arrays.sort(dirs);
+            MyFile[] dirAndFiles = Arrays.copyOf(myFiles, myFiles.length + dirs.length);
+            System.arraycopy(dirs, 0, dirAndFiles, myFiles.length, dirs.length);
+            Arrays.sort(dirAndFiles);
 
             System.out.println("---------- Disk Usage ----------");
             System.out.println("total directory size: " + totalSize + " Kb\n");
 
-            for (int i = 0; i < dirs.length; i++) {
-                printDirInfo(dirs, i, maxDirectorySize, maxItemsNumber, maxDirectoryNameWidth, totalSize);
+            for (int i = 0; i < dirAndFiles.length; i++) {
+                printDirInfo(dirAndFiles, i, maxDirectorySize, maxItemsNumber, maxDirectoryNameWidth, totalSize);
             }
 
             topList.printList();
