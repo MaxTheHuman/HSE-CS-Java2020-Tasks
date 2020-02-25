@@ -23,9 +23,7 @@ public class Main {
         listDirsInDir(directory);
 
         long endTime = Instant.now().toEpochMilli();
-
         long timeElapsed = endTime - startTime;
-
         System.out.println("Time elapsed: " + timeElapsed + " ms");
     }
 
