@@ -2,6 +2,7 @@ package ru.hse.cs.java2020.task01;
 
 import java.io.File;
 import java.util.Arrays;
+import java.time.Instant;
 
 
 public class Main {
@@ -9,6 +10,9 @@ public class Main {
     private static TopNList topList = new TopNList(TOPFILESNUMBER);
 
     public static void main(String[] args) {
+
+        long startTime = Instant.now().toEpochMilli();
+
         if (args.length <= 0) {
             System.err.println("directory path is not defined");
             return;
@@ -17,6 +21,12 @@ public class Main {
         final File directory = new File(args[0]);
 
         listDirsInDir(directory);
+
+        long endTime = Instant.now().toEpochMilli();
+
+        long timeElapsed = endTime - startTime;
+
+        System.out.println("Time elapsed: " + timeElapsed + " ms");
     }
 
     static void printDirInfo(MyFile[] dirs, int i, long maxDirectorySize,
