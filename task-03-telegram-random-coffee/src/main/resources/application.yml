@@ -1,0 +1,7 @@
+bot:
+  token: "1136529264:AAHgC7fsp_VB-DAexeYIBgiq-0-QmV95c7g"
+  username: "MaxYaTrackerBot"
+
+interface:
+  messageToStart: "Send 'Start' to start using this bot"
+  welcomeMessage: "Hi! I'm ahere to help you contact with Yandex Tracker"

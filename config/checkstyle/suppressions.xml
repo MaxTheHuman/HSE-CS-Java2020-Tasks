@@ -7,7 +7,7 @@
 <suppressions>
     <suppress checks="HideUtilityClassConstructor" files="ru.hse.cs.java2020.task01.Main"/>
     <suppress checks="HideUtilityClassConstructor" files="ru.hse.cs.java2020.task02.Main"/>
-    <suppress checks="HideUtilityClassConstructor" files="ru.hse.cs.java2020.task03.Main"/>
+    <suppress checks="HideUtilityClassConstructor" files="ru.hse.cs.java2020.task03.TelegramBot"/>
     <suppress checks="HideUtilityClassConstructor" files="ru.hse.cs.java2020.task04.Main"/>
 
     <suppress checks="AvoidStarImport" files="src[\\/]test[\\/].*"/>
