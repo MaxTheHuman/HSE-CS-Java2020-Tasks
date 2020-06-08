@@ -3,6 +3,7 @@ package ru.hse.cs.java2020.task03.service;
 import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.hse.cs.java2020.task03.common.States;
 import ru.hse.cs.java2020.task03.dao.BotUserDao;
 import ru.hse.cs.java2020.task03.model.BotUser;
 
@@ -41,6 +42,10 @@ public class UserService {
 
     public int updateUserToken(Long chatId, String token) {
         return botUserDao.updateUserToken(chatId, token);
+    }
+
+    public int updateUserState(Long chatId, States state) {
+        return botUserDao.updateUserState(chatId, state);
     }
 
     public int forgetUser(Long chatId) {

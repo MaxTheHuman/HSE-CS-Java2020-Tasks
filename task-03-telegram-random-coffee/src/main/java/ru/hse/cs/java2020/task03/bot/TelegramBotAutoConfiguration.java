@@ -1,4 +1,4 @@
-package ru.hse.cs.java2020.task03;
+package ru.hse.cs.java2020.task03.bot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

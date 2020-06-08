@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.hse.cs.java2020.task03.common.States;
 import ru.hse.cs.java2020.task03.model.BotUser;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository("postgres")
 public class BotUserDataAccessService implements BotUserDao{
@@ -26,13 +26,15 @@ public class BotUserDataAccessService implements BotUserDao{
                 "Insert Into USERS (" +
                 " chatId, " +
                 " orgId, " +
-                " token " +
-                ") Values (?, ?, ?)";
+                " token, " +
+                " state " +
+                ") Values (?, ?, ?, ?)";
         return jdbcTemplate.update(
                 sql,
                 user.getChatId(),
                 user.getOrgId(),
-                user.getToken()
+                user.getToken(),
+                user.getStateAsString()
         );
     }
 
@@ -42,7 +44,8 @@ public class BotUserDataAccessService implements BotUserDao{
                 "Select " +
                 " chatId, " +
                 " orgId, " +
-                " token " +
+                " token, " +
+                " state " +
                 "From USERS";
 
         return jdbcTemplate.query(sql, mapBotUserFromDb());
@@ -54,9 +57,11 @@ public class BotUserDataAccessService implements BotUserDao{
                 " Select " +
                 " chatId, " +
                 " orgId, " +
-                " token " +
+                " token, " +
+                " state " +
                 "From USERS " +
-                "Where chatId = ?";
+                "Where chatId = " +
+                chatId.toString();
 
         List<BotUser> botUsers = jdbcTemplate.query(sql, mapBotUserFromDb());
         BotUser botUser = null;
@@ -74,12 +79,22 @@ public class BotUserDataAccessService implements BotUserDao{
 
             String orgIdStr = resultSet.getString("orgId");
             Integer orgId = Integer.parseInt(orgIdStr);
+
             String token = resultSet.getString("token");
+
+            String stateStr = resultSet.getString("state");
+            States state;
+            try {
+                state = States.valueOf(stateStr);
+            } catch (IllegalArgumentException e) {
+                state = States.ILLEGAL_STATE;
+            }
 
             return new BotUser(
                     chatId,
                     orgId,
-                    token
+                    token,
+                    state
             );
         };
     }
@@ -108,5 +123,14 @@ public class BotUserDataAccessService implements BotUserDao{
                 "Set token = ? " +
                 "Where chatId = ?";
         return jdbcTemplate.update(sql, token, chatId);
+    }
+
+    @Override
+    public int updateUserState(Long chatId, States state) {
+        String sql = "" +
+                "Update USERS " +
+                "Set state = ? " +
+                "Where chatId = ?";
+        return jdbcTemplate.update(sql, state.toString(), chatId);
     }
 }

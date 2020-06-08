@@ -10,7 +10,4 @@ app:
     pool-size: 20
 
 interface:
-  messageToStart: "Send 'Start' to start using this bot"
-  stopMessage: "Come back again later!"
-  welcomeMessage: "Hi! I'm here to help you contact with Yandex Tracker \nSend me your organisation id for further work\n"
-  infoMessage: "I can do following things: \nlist all tasks \nsearch for task by key \netc..."
+

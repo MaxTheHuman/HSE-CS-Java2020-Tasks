@@ -1,5 +1,6 @@
 package ru.hse.cs.java2020.task03.dao;
 
+import ru.hse.cs.java2020.task03.common.States;
 import ru.hse.cs.java2020.task03.model.BotUser;
 
 import java.util.List;
@@ -18,4 +19,6 @@ public interface BotUserDao {
     int updateUserOrgId(Long chatId, Integer orgId);
 
     int updateUserToken(Long chatId, String token);
+
+    int updateUserState(Long chatId, States state);
 }
