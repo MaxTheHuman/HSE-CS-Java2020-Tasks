@@ -153,6 +153,7 @@ public class TrackerApiHandler {
                         "followers: " + followers + "\n";
             } catch (IOException e) {
                 e.printStackTrace();
+                answer = "organisation ID or Token invalid\n";
             }
 
             return answer.toString();
@@ -246,6 +247,7 @@ public class TrackerApiHandler {
 
             } catch (IOException e) {
                 e.printStackTrace();
+                answer = "organisation ID or Token invalid\n";
             }
 
             return answer.toString();
@@ -335,12 +337,13 @@ public class TrackerApiHandler {
 
             } catch (IOException e) {
                 e.printStackTrace();
-                answer += "summary: " + summary + "\n" +
-                        "description: " + description + "\n" +
-                        "author: " + queue + "\n" +
-                        "assignOnMe: " + assignToMe + "\n" +
-                        "jsonBodyString: " + jsonBodyString + "\n" +
-                        "\n";
+                answer = "organisation ID or Token invalid\n";
+//                answer += "summary: " + summary + "\n" +
+//                        "description: " + description + "\n" +
+//                        "author: " + queue + "\n" +
+//                        "assignOnMe: " + assignToMe + "\n" +
+//                        "jsonBodyString: " + jsonBodyString + "\n" +
+//                        "\n";
             }
 
             return answer;

@@ -53,9 +53,9 @@ public class TelegramBot extends TelegramLongPollingBot{
     private String stopMessage = "Come back again later!\n";
 
     private final String infoMessage = "I can do following things:\n" +
-            "list all tasks\n" +
+            "list all tasks which are assigned to you\n" +
             "search for task by key\n" +
-            "etc...\n" +
+            "create new task\n" +
             "You can deactivate me any time by sending 'Stop'\n";
 
     @Override
@@ -368,16 +368,9 @@ public class TelegramBot extends TelegramLongPollingBot{
                     state = States.MAIN_MENU;
                 }
             } else {
-                text = messageToStart;
-                List<BotUser> allUsers = userService.getAllUsers();
-                for (BotUser currBotUser : allUsers) {
-                    text += currBotUser.getChatId().toString() + " " +
-                            currBotUser.getOrgId().toString() + " " +
-                            currBotUser.getToken() +  " " +
-                            currBotUser.getStateAsString() + "\n";
-                }
+                text = "Please type in correct command";
             }
-            text += "Current state is " + state.toString() + "\n";
+            // text += "Current state is " + state.toString() + "\n";
             response.setText(text);
             setButtons(response);
             try {
@@ -393,7 +386,6 @@ public class TelegramBot extends TelegramLongPollingBot{
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         sendMessage.setReplyMarkup(replyKeyboardMarkup);
 
-        // Создаем список строк клавиатуры
         List<KeyboardRow> keyboard = new ArrayList<>();
 
         if (state.equals(States.STOP)) {
