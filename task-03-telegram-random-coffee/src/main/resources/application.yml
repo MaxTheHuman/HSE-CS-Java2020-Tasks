@@ -10,4 +10,4 @@ app:
     pool-size: 20
 
 interface:
-
+  perPage: 2

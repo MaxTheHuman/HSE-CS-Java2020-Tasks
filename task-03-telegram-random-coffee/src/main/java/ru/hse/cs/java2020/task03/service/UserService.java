@@ -20,12 +20,6 @@ public class UserService {
     }
 
     public int addUser(BotUser user) {
-//        int result;
-//        try {
-//            result = botUserDao.insertUser(user);
-//        } catch (PSQLException e) {
-//            result = 1;
-//        }
         return botUserDao.insertUser(user);
     }
 
@@ -51,6 +45,10 @@ public class UserService {
 
     public int forgetUser(Long chatId) {
         return botUserDao.deleteUserByChatId(chatId);
+    }
+
+    public int updateUserPage(Long chatId, int page) {
+        return botUserDao.updateUserPage(chatId, page);
     }
 
 }

@@ -3,6 +3,8 @@ package ru.hse.cs.java2020.task03.trackerApiHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jvnet.hk2.annotations.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,6 +15,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class TrackerApiHandler {
+
     public static String getMySelf(String token, String orgId) {
         final String commonUrl = "https://api.tracker.yandex.net/v2/myself";
         URL url;
@@ -63,6 +66,70 @@ public class TrackerApiHandler {
         return myId;
     }
 
+    public static String getComments(String token, String orgId, String key) {
+        final String commonUrl = "https://api.tracker.yandex.net/v2/issues/" + key + "/comments";
+        URL url;
+        try {
+            url = new URL(commonUrl);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return "url is invalid";
+        }
+
+        HttpURLConnection con = null;
+        String comments = "";
+
+        try {
+            con = (HttpURLConnection) url.openConnection();
+            con.setDoOutput(true);
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", "Java client");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setRequestProperty("Authorization", "OAuth " + token);
+            con.setRequestProperty("X-Org-Id", orgId);
+
+
+            Thread.sleep(10);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+                String line;
+                String text = "";
+                String author = "";
+
+                while ((line = in.readLine()) != null) {
+                    JSONArray jsonarray = new JSONArray(line);
+                    if (jsonarray.length() == 0) {
+                        comments = "\nThere are no comments for this task";
+                        return comments;
+                    }
+                    for (int i = 0; i < jsonarray.length(); i++) {
+                        JSONObject jsonobject = jsonarray.getJSONObject(i);
+                        try {
+                            text = jsonobject.getString("text");
+                        } catch (JSONException e) {
+                            text = "";
+                        }
+                        try {
+                            author = jsonobject.getJSONObject("createdBy").getString("display");
+                        } catch (JSONException e) {
+                            author = "There is no information about author for this comment";
+                        }
+                        comments += "\n- " + author + " has commented: " + text;
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                comments = "-2";
+            }
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            comments = "-3";
+        }
+        return comments;
+    }
+
 
     public static String searchByKey(String token, String orgId, String taskKey) {
         final String commonUrl = "https://api.tracker.yandex.net/v2/";
@@ -87,7 +154,6 @@ public class TrackerApiHandler {
 
             String jsonQueryString = "{\"query\": \"key: " + taskKey + "\"}";
             String answer = "";
-            // JSONArray answer = new JSONArray();
 
             try(OutputStream os = con.getOutputStream()) {
                 byte[] input = jsonQueryString.getBytes("utf-8");
@@ -102,11 +168,13 @@ public class TrackerApiHandler {
                 String description = "";
                 String author = "";
                 String assignee = "";
+                String key = "";
                 JSONArray followersJSONArray = new JSONArray();
                 String followers = "";
+                String comments = "";
 
                 while ((line = in.readLine()) != null) {
-                    // content.append(line);
+
                     JSONArray jsonarray = new JSONArray(line);
                     if (jsonarray.length() == 0) {
                         answer = "There is no task with given key\n";
@@ -114,7 +182,7 @@ public class TrackerApiHandler {
                     }
                     for (int i = 0; i < jsonarray.length(); i++) {
                         JSONObject jsonobject = jsonarray.getJSONObject(i);
-                        // Извлекает значение по ключу. Если объект не на первом уровне, делаем цепочку гетстрингов
+
                         try {
                             summary = jsonobject.getString("summary");
                         } catch (JSONException e) {
@@ -136,6 +204,11 @@ public class TrackerApiHandler {
                             assignee = "There is no information about assignee for this task";
                         }
                         try {
+                            key = jsonobject.getString("key");
+                        } catch (JSONException e) {
+                            key = "There is no key";
+                        }
+                        try {
                             followersJSONArray = jsonobject.getJSONArray("followers");
                             for (int j = 0; j < followersJSONArray.length(); j++) {
                                 followers += "\n- " + followersJSONArray.getJSONObject(j).getString("display");
@@ -146,10 +219,13 @@ public class TrackerApiHandler {
                     }
                 }
 
-                answer = "summary: " + summary + "\n" +
+                comments = getComments(token, orgId, key);
+                answer = "key: " + key + "\n" +
+                        "summary: " + summary + "\n" +
                         "description: " + description + "\n" +
                         "author: " + author + "\n" +
                         "assignee: " + assignee + "\n" +
+                        "comments: " + comments + "\n" +
                         "followers: " + followers + "\n";
             } catch (IOException e) {
                 e.printStackTrace();
@@ -164,8 +240,9 @@ public class TrackerApiHandler {
         }
     }
 
-    public static String searchMyTasks(String token, String orgId) {
-        final String commonUrl = "https://api.tracker.yandex.net/v2/issues/_search";
+    public static String searchMyTasks(String token, String orgId, String perPage, String page) {
+        final String commonUrl = "https://api.tracker.yandex.net/v2/issues/_search" +
+                "?perPage=" + perPage + "&page=" + page;
         URL url;
         try {
             url = new URL(commonUrl);
@@ -185,7 +262,7 @@ public class TrackerApiHandler {
             con.setRequestProperty("Authorization", "OAuth " + token);
             con.setRequestProperty("X-Org-Id", orgId);
 
-            String jsonQueryString = "{\"query\": \"\\\"assignee\\\": me() \\\"Sort By\\\": Updated DESC \"}"; // \\\"Sort By\\\": Updated DESC\"}";
+            String jsonQueryString = "{\"query\": \"\\\"assignee\\\": me() \\\"Sort By\\\": Updated DESC \"}";
             String answer = "";
 
             try(OutputStream os = con.getOutputStream()) {
@@ -202,17 +279,18 @@ public class TrackerApiHandler {
                 String author = "";
                 JSONArray followersJSONArray = new JSONArray();
                 String followers = "";
+                String key = "";
+                String comments = "";
 
                 while ((line = in.readLine()) != null) {
-                    // content.append(line);
                     JSONArray jsonarray = new JSONArray(line);
                     if (jsonarray.length() == 0) {
-                        answer = "There is no task with given key\n";
+                        answer = "There is no more tasks\n";
                         return answer;
                     }
                     for (int i = 0; i < jsonarray.length(); i++) {
                         JSONObject jsonobject = jsonarray.getJSONObject(i);
-                        // Извлекает значение по ключу. Если объект не на первом уровне, делаем цепочку гетстрингов
+
                         try {
                             summary = jsonobject.getString("summary");
                         } catch (JSONException e) {
@@ -229,6 +307,11 @@ public class TrackerApiHandler {
                             author = "There is no information about author for this task";
                         }
                         try {
+                            key = jsonobject.getString("key");
+                        } catch (JSONException e) {
+                            key = "There is no key";
+                        }
+                        try {
                             followersJSONArray = jsonobject.getJSONArray("followers");
                             for (int j = 0; j < followersJSONArray.length(); j++) {
                                 followers += "\n- " + followersJSONArray.getJSONObject(j).getString("display");
@@ -236,9 +319,13 @@ public class TrackerApiHandler {
                         } catch (JSONException e) {
                             followers = "There are no followers of this task";
                         }
-                        answer += "summary: " + summary + "\n" +
+
+                        comments = getComments(token, orgId, key);
+                        answer += "key: " + key + "\n" +
+                                "summary: " + summary + "\n" +
                                 "description: " + description + "\n" +
                                 "author: " + author + "\n" +
+                                "comments: " + comments + "\n" +
                                 "followers: " + followers + "\n" +
                                 "\n";
                     }
@@ -250,7 +337,9 @@ public class TrackerApiHandler {
                 answer = "organisation ID or Token invalid\n";
             }
 
-            return answer.toString();
+            String nextPageLink = con.getHeaderField("Link");
+            answer += "For next page click here:\n" + nextPageLink;
+            return answer;
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -309,6 +398,7 @@ public class TrackerApiHandler {
                 String summaryIn = "";
                 String descriptionIn = "";
                 String author = "";
+                String keyIn = "";
 
                 while ((line = in.readLine()) != null) {
                     JSONObject jsonobject = new JSONObject(line);
@@ -328,8 +418,14 @@ public class TrackerApiHandler {
                     } catch (JSONException e) {
                         author = "There is no information about author for this task";
                     }
+                    try {
+                        keyIn = jsonobject.getString("key");
+                    } catch (JSONException e) {
+                        keyIn = "There is no key for this task";
+                    }
 
-                    answer += "summary: " + summaryIn + "\n" +
+                    answer += "key: " + keyIn + "\n" +
+                            "summary: " + summaryIn + "\n" +
                             "description: " + descriptionIn + "\n" +
                             "author: " + author + "\n" +
                             "\n";
@@ -338,12 +434,6 @@ public class TrackerApiHandler {
             } catch (IOException e) {
                 e.printStackTrace();
                 answer = "organisation ID or Token invalid\n";
-//                answer += "summary: " + summary + "\n" +
-//                        "description: " + description + "\n" +
-//                        "author: " + queue + "\n" +
-//                        "assignOnMe: " + assignToMe + "\n" +
-//                        "jsonBodyString: " + jsonBodyString + "\n" +
-//                        "\n";
             }
 
             return answer;

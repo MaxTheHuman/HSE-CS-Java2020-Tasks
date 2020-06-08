@@ -21,4 +21,6 @@ public interface BotUserDao {
     int updateUserToken(Long chatId, String token);
 
     int updateUserState(Long chatId, States state);
+
+    int updateUserPage(Long chatId, int page);
 }

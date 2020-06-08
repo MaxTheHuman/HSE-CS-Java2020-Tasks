@@ -9,5 +9,6 @@ public enum States {
     MAIN_MENU,
     ILLEGAL_STATE,
     SEARCH_BY_KEY,
-    CREATE_TASK;
+    CREATE_TASK,
+    NEXT_PAGE;
 }

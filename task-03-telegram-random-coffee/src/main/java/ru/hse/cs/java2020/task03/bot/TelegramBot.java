@@ -46,6 +46,9 @@ public class TelegramBot extends TelegramLongPollingBot{
     @Value("${bot.username}")
     private String username;
 
+    @Value("${interface.perPage}")
+    private int perPage;
+
     private final String welcomeMessage = "Hi! I'm here to help you contact with Yandex Tracker\n";
 
     private final String messageToStart = "Send 'Start' to start using this bot\n";
@@ -306,15 +309,66 @@ public class TelegramBot extends TelegramLongPollingBot{
                 if (currBotUser.isPresent()) {
                     String orgId = currBotUser.get().getOrgId().toString();
                     String token = currBotUser.get().getToken();
-                    text = TrackerApiHandler.searchMyTasks(token, orgId);
+                    int page = currBotUser.get().getPage();
+                    text = TrackerApiHandler.searchMyTasks(token, orgId,
+                            Integer.toString(perPage), Integer.toString(page));
+                    if (!text.equals("There is no more tasks")) {
+                        userService.updateUserPage(chatId, page + 1);
+                        if (userService.updateUserState(chatId, States.NEXT_PAGE) != 1) {
+                            text += "Something went wrong while updating state\n" +
+                                    "Please, try again\n";
+                        } else {
+                            state = States.NEXT_PAGE;
+                        }
+                    } else {
+                        if (userService.updateUserState(chatId, States.MAIN_MENU) != 1) {
+                            text += "Something went wrong while updating state\n" +
+                                    "Please, try again\n";
+                        } else {
+                            state = States.MAIN_MENU;
+                            userService.updateUserPage(chatId, 1);
+                        }
+                    }
                 } else {
                     text = "Something went wrong and I have no information about you\n";
                 }
+
+            } else if (state.equals(States.NEXT_PAGE) && text.toLowerCase().contains("next page")) {
+                Optional<BotUser> currBotUser = userService.getUserByChatId(chatId);
+                if (currBotUser.isPresent()) {
+                    String orgId = currBotUser.get().getOrgId().toString();
+                    String token = currBotUser.get().getToken();
+                    int page = currBotUser.get().getPage();
+                    text = TrackerApiHandler.searchMyTasks(token, orgId,
+                            Integer.toString(perPage), Integer.toString(page));
+                    if (!text.equals("There is no more tasks")) {
+                        userService.updateUserPage(chatId, page + 1);
+                        if (userService.updateUserState(chatId, States.NEXT_PAGE) != 1) {
+                            text += "Something went wrong while updating state\n" +
+                                    "Please, try again\n";
+                        } else {
+                            state = States.NEXT_PAGE;
+                        }
+                    } else {
+                        if (userService.updateUserState(chatId, States.MAIN_MENU) != 1) {
+                            text += "Something went wrong while updating state\n" +
+                                    "Please, try again\n";
+                        } else {
+                            state = States.MAIN_MENU;
+                            userService.updateUserPage(chatId, 1);
+                        }
+                    }
+                } else {
+                    text = "Something went wrong and I have no information about you\n";
+                }
+            } else if (state.equals(States.NEXT_PAGE) && text.toLowerCase().contains("main menu")) {
+                text = "What do you want?";
                 if (userService.updateUserState(chatId, States.MAIN_MENU) != 1) {
                     text += "Something went wrong while updating state\n" +
                             "Please, try again\n";
                 } else {
                     state = States.MAIN_MENU;
+                    userService.updateUserPage(chatId, 1);
                 }
             } else if (state.equals(States.MAIN_MENU) && text.toLowerCase().contains("create task")) {
                 text = "Please send me summary, description, queue and do you want" +
@@ -433,6 +487,19 @@ public class TelegramBot extends TelegramLongPollingBot{
             keyboard.add(keyboardFirstRow);
             keyboard.add(keyboardSecondRow);
             keyboard.add(keyboardThirdRow);
+        } else if (state.equals(States.NEXT_PAGE)) {
+            replyKeyboardMarkup.setSelective(true);
+            replyKeyboardMarkup.setResizeKeyboard(true);
+            replyKeyboardMarkup.setOneTimeKeyboard(true);
+
+            KeyboardRow keyboardFirstRow = new KeyboardRow();
+            keyboardFirstRow.add(new KeyboardButton("Next page"));
+
+            KeyboardRow keyboardSecondRow = new KeyboardRow();
+            keyboardSecondRow.add(new KeyboardButton("Main menu"));
+
+            keyboard.add(keyboardFirstRow);
+            keyboard.add(keyboardSecondRow);
         }
 
         replyKeyboardMarkup.setKeyboard(keyboard);
