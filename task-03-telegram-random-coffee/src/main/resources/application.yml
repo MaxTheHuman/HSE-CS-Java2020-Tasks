@@ -1,0 +1,13 @@
+bot:
+  token: "1136529264:AAHgC7fsp_VB-DAexeYIBgiq-0-QmV95c7g"
+  username: "MaxYaTrackerBot"
+
+app:
+  datasource:
+    jdbc-url: jdbc:postgresql://localhost:5432/demodb
+    username: postgres
+    password: 1234
+    pool-size: 20
+
+interface:
+
