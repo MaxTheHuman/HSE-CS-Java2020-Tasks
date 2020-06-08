@@ -1,6 +1,6 @@
 package ru.hse.cs.java2020.task03.service;
 
-import org.postgresql.util.PSQLException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.hse.cs.java2020.task03.common.States;
@@ -14,6 +14,7 @@ import java.util.Optional;
 public class UserService {
     private final BotUserDao botUserDao;
 
+    @Autowired
     public UserService(@Qualifier("postgres") BotUserDao botUserDao) {
         this.botUserDao = botUserDao;
     }

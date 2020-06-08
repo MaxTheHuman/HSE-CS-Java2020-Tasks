@@ -1,5 +1,7 @@
 package ru.hse.cs.java2020.task03.bot;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,6 @@ import ru.hse.cs.java2020.task03.service.UserService;
 import ru.hse.cs.java2020.task03.trackerApiHandler.TrackerApiHandler;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -84,6 +85,7 @@ public class TelegramBot extends TelegramLongPollingBot{
             }
 
             if (text.toLowerCase().contains("stop")) {
+                text = stopMessage;
                 if (userService.updateUserState(chatId, States.STOP) != 1) {
                     text = "Something went wrong while updating state\n" +
                             "Please, try again\n";
@@ -289,11 +291,73 @@ public class TelegramBot extends TelegramLongPollingBot{
                 if (currBotUser.isPresent()) {
                     String orgId = currBotUser.get().getOrgId().toString();
                     String token = currBotUser.get().getToken();
-                    try {
-                        text = TrackerApiHandler.searchByKey(token, orgId, taskKey);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    text = TrackerApiHandler.searchByKey(token, orgId, taskKey);
+                } else {
+                    text = "Something went wrong and I have no information about you\n";
+                }
+                if (userService.updateUserState(chatId, States.MAIN_MENU) != 1) {
+                    text += "Something went wrong while updating state\n" +
+                            "Please, try again\n";
+                } else {
+                    state = States.MAIN_MENU;
+                }
+            } else if (state.equals(States.MAIN_MENU) && text.toLowerCase().contains("show my tasks")) {
+                Optional<BotUser> currBotUser = userService.getUserByChatId(chatId);
+                if (currBotUser.isPresent()) {
+                    String orgId = currBotUser.get().getOrgId().toString();
+                    String token = currBotUser.get().getToken();
+                    text = TrackerApiHandler.searchMyTasks(token, orgId);
+                } else {
+                    text = "Something went wrong and I have no information about you\n";
+                }
+                if (userService.updateUserState(chatId, States.MAIN_MENU) != 1) {
+                    text += "Something went wrong while updating state\n" +
+                            "Please, try again\n";
+                } else {
+                    state = States.MAIN_MENU;
+                }
+            } else if (state.equals(States.MAIN_MENU) && text.toLowerCase().contains("create task")) {
+                text = "Please send me summary, description, queue and do you want" +
+                        "to assign task on you in JSON format\n" +
+                        "last parameter name \"assignOnMe\"";
+                if (userService.updateUserState(chatId, States.CREATE_TASK) != 1) {
+                    text += "Something went wrong while updating state\n" +
+                            "Please, try again\n";
+                } else {
+                    state = States.CREATE_TASK;
+                }
+            } else if (state.equals(States.CREATE_TASK)) {
+                JSONObject inputJSON = new JSONObject(text);
+                String summary;
+                String description;
+                String queue;
+                String assignOnMe;
+
+                try {
+                    summary = inputJSON.getString("summary");
+                } catch (JSONException e) {
+                    summary = "";
+                }
+                try {
+                    description = inputJSON.getString("description");
+                } catch (JSONException e) {
+                    description = "";
+                }
+                try {
+                    queue = inputJSON.getString("queue");
+                } catch (JSONException e) {
+                    queue = "0";
+                }
+                try {
+                    assignOnMe = inputJSON.getString("assignOnMe");
+                } catch (JSONException e) {
+                    assignOnMe = "0";
+                }
+                Optional<BotUser> currBotUser = userService.getUserByChatId(chatId);
+                if (currBotUser.isPresent()) {
+                    String orgId = currBotUser.get().getOrgId().toString();
+                    String token = currBotUser.get().getToken();
+                    text = TrackerApiHandler.createTask(token, orgId, queue, summary, description, assignOnMe);
                 } else {
                     text = "Something went wrong and I have no information about you\n";
                 }

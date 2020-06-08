@@ -1,4 +1,4 @@
-package ru.hse.cs.java2020.task03.bot;
+package ru.hse.cs.java2020.task03;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

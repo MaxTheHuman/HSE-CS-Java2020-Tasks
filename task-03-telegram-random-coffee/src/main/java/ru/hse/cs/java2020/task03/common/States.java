@@ -8,5 +8,6 @@ public enum States {
     OAUTH_TOKEN_UPDATE,
     MAIN_MENU,
     ILLEGAL_STATE,
-    SEARCH_BY_KEY;
+    SEARCH_BY_KEY,
+    CREATE_TASK;
 }
