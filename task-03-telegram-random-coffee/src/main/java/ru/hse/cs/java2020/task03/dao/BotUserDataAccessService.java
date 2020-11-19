@@ -27,14 +27,16 @@ public class BotUserDataAccessService implements BotUserDao{
                 " chatId, " +
                 " orgId, " +
                 " token, " +
-                " state " +
-                ") Values (?, ?, ?, ?)";
+                " state, " +
+                " page " +
+                ") Values (?, ?, ?, ?, ?)";
         return jdbcTemplate.update(
                 sql,
                 user.getChatId(),
                 user.getOrgId(),
                 user.getToken(),
-                user.getStateAsString()
+                user.getStateAsString(),
+                user.getPage()
         );
     }
 
@@ -58,7 +60,8 @@ public class BotUserDataAccessService implements BotUserDao{
                 " chatId, " +
                 " orgId, " +
                 " token, " +
-                " state " +
+                " state, " +
+                " page " +
                 "From USERS " +
                 "Where chatId = " +
                 chatId.toString();
@@ -90,11 +93,14 @@ public class BotUserDataAccessService implements BotUserDao{
                 state = States.ILLEGAL_STATE;
             }
 
+            int page = resultSet.getInt("page");
+
             return new BotUser(
                     chatId,
                     orgId,
                     token,
-                    state
+                    state,
+                    page
             );
         };
     }
@@ -132,5 +138,14 @@ public class BotUserDataAccessService implements BotUserDao{
                 "Set state = ? " +
                 "Where chatId = ?";
         return jdbcTemplate.update(sql, state.toString(), chatId);
+    }
+
+    @Override
+    public int updateUserPage(Long chatId, int page) {
+        String sql = "" +
+                "Update USERS " +
+                "Set state = ? " +
+                "Where chatId = ?";
+        return jdbcTemplate.update(sql, page, chatId);
     }
 }
